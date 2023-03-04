@@ -3,7 +3,7 @@ type Genre = {
   name: string
 }
 
-export type Result = {
+export type MovieResult = {
   id: number
   title: string
   overview: string
@@ -17,8 +17,18 @@ export type Result = {
   runtime: number
 }
 
-export type Data = {
+export type Person = {
+  id: number
+  name: string
+  profile_path: string
+}
+
+export type CreditResult = {
+  cast: Array<Person>
+}
+
+export type MovieData = {
   data: {
-    results: Array<Result>
+    results: Array<MovieResult>
   }
 }

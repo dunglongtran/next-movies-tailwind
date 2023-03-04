@@ -17,4 +17,3 @@ export const abbreviateBudget = (budget: number) => {
 
   return `${formattedNum}${abbreviation}`
 }
-

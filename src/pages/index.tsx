@@ -4,13 +4,15 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import { env } from '@/lib/env'
-import type { Data } from '@/lib/types/data'
+import type { MovieData } from '@/lib/types/data'
 import { cn } from '@/utils/classNames'
 import { shimmer, toBase64 } from '@/utils/shimmer'
 import { sortByDateDescending } from '@/utils/sort'
-import { Container, Grid, Typography } from '@mui/material'
+import { formatReleaseDate } from '@/utils/time'
+import { StarRate } from '@mui/icons-material'
+import { Container, Grid, Stack, Typography } from '@mui/material'
 
-const Home = ({ data }: Data) => {
+const Home = ({ data }: MovieData) => {
   const sortedMoviesByDate = sortByDateDescending(data.results)
 
   return (
@@ -70,6 +72,18 @@ const Home = ({ data }: Data) => {
                 >
                   {movie.title}
                 </Typography>
+                <Stack direction="row" alignItems="center" spacing={2}>
+                  <Typography
+                    className="inline-flex items-center space-x-2"
+                    variant="body1"
+                  >
+                    <StarRate className="text-[#D9A931]" fontSize="small" />
+                    <span>{movie.vote_average.toFixed(1)}</span>
+                  </Typography>
+                  <Typography variant="body2">
+                    {formatReleaseDate(movie.release_date)}
+                  </Typography>
+                </Stack>
               </Link>
             </Grid>
           ))}

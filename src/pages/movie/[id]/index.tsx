@@ -3,44 +3,40 @@ import Head from 'next/head'
 import Image from 'next/image'
 
 import { env } from '@/lib/env'
-import type { Result } from '@/lib/types/data'
+import type { CreditResult, MovieResult } from '@/lib/types/data'
 import { abbreviateBudget } from '@/utils/budget'
 import { cn } from '@/utils/classNames'
-import { toBase64, shimmer } from '@/utils/shimmer'
-import { formatMinutesToHour } from '@/utils/time'
+import { shimmer, toBase64 } from '@/utils/shimmer'
+import { formatMinutesToHour, formatReleaseDate } from '@/utils/time'
 import { StarRate } from '@mui/icons-material'
-import {
-  Grid,
-  Chip,
-  Container,
-  Stack,
-  Typography,
-  Avatar,
-  AvatarGroup,
-} from '@mui/material'
+import { Avatar, Chip, Container, Grid, Stack, Typography } from '@mui/material'
 
 const SingleMoviePage = ({
   data: { movie, credit },
 }: {
-  data: { movie: Result; credit: any }
+  data: { movie: MovieResult; credit: CreditResult }
 }) => {
-  const date = new Date(movie.release_date)
-
-  const options = {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  } satisfies Intl.DateTimeFormatOptions
-
-  const formattedReleaseDate = new Intl.DateTimeFormat('en-US', options).format(
-    date
-  )
-
   return (
     <>
       <Head>
         <title>{movie.title}</title>
         <meta name="description" content={movie.overview} />
+
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={movie.title} />
+        <meta property="og:description" content={movie.overview} />
+        <meta
+          property="og:image"
+          content={`https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`}
+        />
+
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:title" content={movie.title} />
+        <meta property="twitter:description" content={movie.overview} />
+        <meta
+          property="twitter:image"
+          content={`https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`}
+        />
       </Head>
 
       <Container maxWidth="xl">
@@ -55,9 +51,9 @@ const SingleMoviePage = ({
             fill
             loading="lazy"
             sizes="(max-width: 640px) 100vw,
-                  (max-width: 1280px) 50vw,
-                  (max-width: 1536px) 33vw,
-                  25vw"
+            (max-width: 1280px) 50vw,
+            (max-width: 1536px) 33vw,
+            25vw"
             placeholder="blur"
             blurDataURL={`data:image/svg+xml;base64,${toBase64(
               shimmer(96, 96)
@@ -100,27 +96,15 @@ const SingleMoviePage = ({
               </Typography>
               <Typography variant="body1">{movie.overview}</Typography>
             </Grid>
-            <Grid item xs={6} md={4}>
-              <Typography mt={2} variant="h6" component="h2">
-                Cast
-              </Typography>
-              <AvatarGroup max={10}>
-                {credit.cast?.map((person) => (
-                  <Avatar
-                    key={person.id}
-                    src={`https://image.tmdb.org/t/p/w185${person.profile_path}`}
-                    alt={person.name}
-                  />
-                ))}
-              </AvatarGroup>
-            </Grid>
           </Grid>
           <Grid item xs={6} md={2}>
             <Grid item xs={6} md={2}>
               <Typography mt={2} variant="h6" component="h2">
                 Release
               </Typography>
-              <Typography variant="body1">{formattedReleaseDate}</Typography>
+              <Typography variant="body1">
+                {formatReleaseDate(movie.release_date)}
+              </Typography>
             </Grid>
             <Grid item xs={6} md={2}>
               <Typography mt={2} variant="h6" component="h2">
@@ -139,6 +123,45 @@ const SingleMoviePage = ({
               </Typography>
             </Grid>
           </Grid>
+          <Grid item xs>
+            <Typography mt={2} variant="h6" component="h2">
+              Cast
+            </Typography>
+            <div className="flex flex-wrap gap-6">
+              {credit.cast?.map((person) => (
+                <Stack key={person.id} direction="column" alignItems="center">
+                  {person.profile_path ? (
+                    <Image
+                      className={cn(
+                        'aspect-square rounded-full object-cover',
+                        'transition-all duration-500 hover:scale-105 active:scale-100'
+                      )}
+                      src={`https://image.tmdb.org/t/p/w185${person.profile_path}`}
+                      alt={person.name}
+                      width={64}
+                      height={64}
+                      loading="lazy"
+                      placeholder="blur"
+                      blurDataURL={`data:image/svg+xml;base64,${toBase64(
+                        shimmer(64, 64)
+                      )}`}
+                    />
+                  ) : (
+                    <Avatar sx={{ width: 64, height: 64 }}>
+                      {person.name
+                        .split(' ')
+                        .map((name) => name.charAt(0))
+                        .join('')
+                        .slice(0, 2)}
+                    </Avatar>
+                  )}
+                  <Typography mt={2} variant="body1">
+                    {person.name}
+                  </Typography>
+                </Stack>
+              ))}
+            </div>
+          </Grid>
         </Grid>
       </Container>
     </>
@@ -151,14 +174,14 @@ const findSingleMovieDetailsById = async (id: string) => {
   const res = await fetch(
     `${NEXT_PUBLIC_API_BASE_URL}/movie/${id}?api_key=${API_KEY}`
   )
-  return (await res.json()) as { data: Result }
+  return (await res.json()) as { data: MovieResult }
 }
 
 const findSingleMovieCreditsById = async (id: string) => {
   const res = await fetch(
     `${NEXT_PUBLIC_API_BASE_URL}/movie/${id}/credits?api_key=${API_KEY}`
   )
-  return (await res.json()) as { data: any }
+  return (await res.json()) as { data: CreditResult }
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
