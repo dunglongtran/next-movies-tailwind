@@ -4,7 +4,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import { env } from '@/lib/env'
+import { useHasHydrated } from '@/lib/hooks/hydration'
 import type { MovieData } from '@/lib/types/data'
+import { useMovieStore } from '@/store'
 import { cn } from '@/utils/classNames'
 import { shimmer, toBase64 } from '@/utils/shimmer'
 import { sortByDateDescending } from '@/utils/sort'
@@ -13,6 +15,8 @@ import { StarRate } from '@mui/icons-material'
 import { Container, Grid, Stack, Typography } from '@mui/material'
 
 const Home = ({ data }: MovieData) => {
+  const hasHydrated = useHasHydrated()
+  const wishList = useMovieStore((state) => state.wishList)
   const sortedMoviesByDate = sortByDateDescending(data.results)
 
   return (
@@ -28,6 +32,67 @@ const Home = ({ data }: MovieData) => {
       </Head>
 
       <Container>
+        <Typography variant="h6" component="h2" gutterBottom>
+          <span role="img" aria-label="Wishlist">
+            ❤️
+          </span>
+          Wishlist
+        </Typography>
+        {hasHydrated && wishList.length ? (
+          <Grid container columns={{ xs: 1, md: 6 }} spacing={2}>
+            {wishList.map((movie) => (
+              <Grid key={movie.id} item xs={6} md={1} zeroMinWidth>
+                <Link data-testid="movie-link" href={`/movie/${movie.id}`}>
+                  <div className="relative aspect-[9/16] h-full max-h-64 w-full overflow-hidden rounded-2xl md:max-w-[200px]">
+                    <Image
+                      className={cn(
+                        'object-cover',
+                        'transition-all duration-500 hover:scale-105 active:scale-100'
+                      )}
+                      src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
+                      alt={movie.title}
+                      fill
+                      loading="lazy"
+                      sizes="(max-width: 640px) 100vw,
+                  (max-width: 1280px) 50vw,
+                  (max-width: 1536px) 33vw,
+                  25vw"
+                      placeholder="blur"
+                      blurDataURL={`data:image/svg+xml;base64,${toBase64(
+                        shimmer(96, 96)
+                      )}`}
+                    />
+                  </div>
+                  <Typography
+                    data-testid="movie-title"
+                    mt={1}
+                    variant="body1"
+                    noWrap
+                    component="h3"
+                  >
+                    {movie.title}
+                  </Typography>
+                  <Stack direction="row" alignItems="center" spacing={2}>
+                    <Typography
+                      className="inline-flex items-center space-x-2"
+                      variant="body1"
+                    >
+                      <StarRate className="text-[#D9A931]" fontSize="small" />
+                      <span>{movie.vote_average.toFixed(1)}</span>
+                    </Typography>
+                    <Typography variant="body2">
+                      {formatReleaseDate(movie.release_date)}
+                    </Typography>
+                  </Stack>
+                </Link>
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <Typography variant="body1">
+            You haven&apos;t added any titles to your list yet.
+          </Typography>
+        )}
         <Typography variant="h6" component="h2" gutterBottom>
           <span role="img" aria-label="Trending">
             🔥

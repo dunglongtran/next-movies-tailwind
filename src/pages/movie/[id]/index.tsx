@@ -1,21 +1,41 @@
+import { useState } from 'react'
+
 import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
 
 import { env } from '@/lib/env'
+import { useHasHydrated } from '@/lib/hooks/hydration'
 import type { CreditResult, MovieResult } from '@/lib/types/data'
+import { useMovieStore } from '@/store'
 import { abbreviateBudget } from '@/utils/budget'
 import { cn } from '@/utils/classNames'
 import { shimmer, toBase64 } from '@/utils/shimmer'
 import { formatMinutesToHour, formatReleaseDate } from '@/utils/time'
-import { StarRate } from '@mui/icons-material'
-import { Avatar, Chip, Container, Grid, Stack, Typography } from '@mui/material'
+import { Add, Check, StarRate } from '@mui/icons-material'
+import {
+  Avatar,
+  Button,
+  Chip,
+  Container,
+  Grid,
+  Stack,
+  Typography,
+} from '@mui/material'
 
 const SingleMoviePage = ({
   data: { movie, credit },
 }: {
   data: { movie: MovieResult; credit: CreditResult }
 }) => {
+  const hasHydrated = useHasHydrated()
+  const hasMovieBeenAddedToWishList = useMovieStore((state) =>
+    state.hasMovieBeenAddedToWithList(movie.id)
+  )
+  const toggleMoviePresenceInWishList = useMovieStore(
+    (state) => state.toggleMoviePresenceInWishList
+  )
+
   return (
     <>
       <Head>
@@ -67,12 +87,12 @@ const SingleMoviePage = ({
             <Stack direction="row" alignItems="center" spacing={2}>
               <Typography
                 className="inline-flex items-center space-x-2"
-                variant="body1"
+                variant="body2"
               >
                 <StarRate className="text-[#D9A931]" />
                 <span>{movie.vote_average.toFixed(1)}</span>
               </Typography>
-              <Typography variant="body2">{movie.vote_count}</Typography>
+              <Typography variant="body2">{movie.vote_count} Votes</Typography>
             </Stack>
           </div>
         </div>
@@ -87,6 +107,19 @@ const SingleMoviePage = ({
             color="primary"
           />
         ))}
+
+        {hasHydrated && (
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={!hasMovieBeenAddedToWishList ? <Add /> : <Check />}
+            onClick={() => toggleMoviePresenceInWishList(movie)}
+          >
+            {!hasMovieBeenAddedToWishList
+              ? 'Add to wishlist'
+              : 'Remove from wishlist'}
+          </Button>
+        )}
 
         <Grid container columns={{ xs: 1, md: 6 }} spacing={2}>
           <Grid item xs={6} md={4}>
