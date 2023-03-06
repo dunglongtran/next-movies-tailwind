@@ -12,7 +12,7 @@ if (!parsed.success) {
     '❌ Invalid environment variables: ',
     JSON.stringify(parsed.error.format(), null, 2)
   )
-  process.exit(1)
+  process.exit?.(1)
 }
 
 export const env = parsed.data
