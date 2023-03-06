@@ -53,3 +53,18 @@ yarn dev
 # pnpm
 pnpm dev
 ```
+
+4. Testing
+
+> :warning: Make sure to run the server before run the test commands
+
+```
+# npm
+npm run playwright test
+
+# Yarn
+yarn playwright test
+
+# pnpm
+pnpm playwright test
+```

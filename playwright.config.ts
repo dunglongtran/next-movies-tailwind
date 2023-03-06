@@ -17,7 +17,7 @@ dotenv.config({ path: path.resolve(__dirname, '.env.local') })
 export default defineConfig({
   testDir: './src/tests/e2e/',
   /* Maximum time one test can run for. */
-  timeout: 30 * 1000,
+  timeout: 120_000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
@@ -40,7 +40,7 @@ export default defineConfig({
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
     actionTimeout: 0,
     /* Base URL to use in actions like `await page.goto('/')`. */
-    // baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:3000',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -88,8 +88,10 @@ export default defineConfig({
   // outputDir: 'test-results/',
 
   /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   port: 3000,
-  // },
+  webServer: {
+    command: 'pnpm build && pnpm start',
+    timeout: 120_000,
+    reuseExistingServer: !process.env.CI,
+    port: 3000,
+  },
 })
