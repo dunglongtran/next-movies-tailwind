@@ -6,6 +6,7 @@ import '@/styles/globals.css'
 import type { EmotionCache } from '@emotion/react'
 import { CacheProvider, ThemeProvider } from '@emotion/react'
 import { CssBaseline } from '@mui/material'
+import { wrapper } from '@/lib/store'
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache()
@@ -28,4 +29,4 @@ const App = (props: MyAppProps) => {
   )
 }
 
-export default App
+export default wrapper.withRedux(App);

@@ -13,12 +13,17 @@ import { sortByDateDescending } from '@/utils/sort'
 import { formatReleaseDate } from '@/utils/time'
 import { StarRateRounded } from '@mui/icons-material'
 import { Grid, Stack, Typography } from '@mui/material'
+import { wrapper } from '@/lib/store'
+import { getPokemonByName, getPokemonList, getRunningQueriesThunk, useGetPokemonListQuery } from '@/lib/pokemonApi'
+import { useAppSelector } from '../lib/hooks'
 
-const Home = ({ data }: MovieData) => {
+const Home = ({ data,value }: MovieData) => {
   const hasHydrated = useHasHydrated()
   const watchList = useMovieStore((state) => state.watchList)
   const sortedMoviesByDate = sortByDateDescending(data.results)
-
+  const state = useAppSelector((state) => state)
+  const result = useGetPokemonListQuery()
+  console.log('state', state,value, result)
   return (
     <>
       <Head>
@@ -30,7 +35,9 @@ const Home = ({ data }: MovieData) => {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
+      {
+       result.isSuccess && result.data.results.map(item=><a key={item.name}>{item.name}</a>)
+      }
       <Typography variant="h6" component="h2" gutterBottom mt={4}>
         <span role="img" aria-label="Watch List">
           🎞️
@@ -164,16 +171,24 @@ const Home = ({ data }: MovieData) => {
 
 const { NEXT_PUBLIC_API_BASE_URL, API_KEY } = env
 
-export const getServerSideProps: GetServerSideProps = async () => {
-  const res = await fetch(
-    `${NEXT_PUBLIC_API_BASE_URL}/movie/popular?api_key=${API_KEY}`
-  )
-  const data = await res.json()
-  return {
-    props: {
-      data,
-    },
-  }
-}
+export const getServerSideProps: GetServerSideProps =
+  wrapper.getServerSideProps((store) => async (context) => {
+    const name = context.query?.name
+    // if (typeof name === 'string') {
+    //   store.dispatch(getPokemonByName.initiate(name,{forceRefetch:true,subscribe:false}))
+    // }
+      store.dispatch(getPokemonList.initiate())
+    const value= await Promise.all(store.dispatch(getRunningQueriesThunk()))
+    const res = await fetch(
+      `${NEXT_PUBLIC_API_BASE_URL}/movie/popular?api_key=${API_KEY}`
+    )
+    const data = await res.json()
+    return {
+      props: {
+        data,
+        value,
+      },
+    }
+  })
 
 export default Home
